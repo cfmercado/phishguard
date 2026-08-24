@@ -1,0 +1,42 @@
+{
+    "manifest_version": 3,
+    "name": "PhishGuard Extension",
+    "short_name": "PhishGuard",
+    "version": "1.0",
+    "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvNkestD8Il2vaSJPH/Zf3jocRI1ugbDhtKxjR6NPhNIN71SDiBUTYxNg8c/OtE6US35x0BaHhxk5OqJUBdcmgwPJXZ7e+v+/bTM2UZstn9VB17zKzKxcZZCxrzwNYwmeIovoGtg1ktmcSWooZ69403GjGtQ0uQWvAINhMjapihFth8W7ezdEh+0n7DZFIVXpfTtuLZ4/DBq5srjzUaDkMDFHYMlLs5KYmyTqc5n31v4UVA32yh9FdTTKRIKMHM4kE8ulpIVd0E0F8QAtaRR9KAmbdCUL/xduwfjh05RhU2khlI91U4DH6GBwr/eRlapApH/eOUggIzreZrHLmyNX6wIDAQAB",
+    "author": "Cedric Allen F. Mercado <cfmercado@up.edu.ph>",
+
+    "description": "Manifest V3-Compliant Phishing Detection System using CatBoost",
+
+    "background": {
+        "service_worker": "background.js"
+    },
+
+    "content_scripts": [
+        {
+            "matches": [ "*://mail.google.com/*" ],
+            "js": [
+                "src/extensionInjector.js"
+            ],
+            "css": [
+                "src/style.css"
+            ],
+            "run_at": "document_start"
+        }
+    ],
+
+    "web_accessible_resources": [{
+        "resources": [
+            "dist/gmailJsLoader.js",
+            "dist/extension.js",
+            "dist/gmailJsLoader.js.map",
+            "dist/extension.js.map"
+        ],
+        "matches": ["<all_urls>"]
+    }],
+    "host_permissions": [
+        "https://mail.google.com/*",
+        "http://localhost:8000/*",
+        "https://phishguard-backend-1qg5.onrender.com/*"
+    ]
+}
