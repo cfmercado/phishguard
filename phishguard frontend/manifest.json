@@ -32,7 +32,7 @@
             "dist/gmailJsLoader.js.map",
             "dist/extension.js.map"
         ],
-        "matches": ["<all_urls>"]
+        "matches": ["https://mail.google.com/*"]
     }],
     "host_permissions": [
         "https://mail.google.com/*",
