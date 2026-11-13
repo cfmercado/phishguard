@@ -122,17 +122,34 @@ df['attachment_types'] = df['attachment_types'].apply(clean_attachments)
 df = df.dropna(subset=['label']) 
 df['label'] = df['label'].astype(int)
 
-# Split into Training and Testing Sets
+# Split into Training, Validation and Testing Sets
 X = df[features]
 y = df[target]
 
-print("Splitting data (80% Train, 20% Test)...")
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, 
-    test_size=0.2, 
-    random_state=42, 
+# Decision threshold used by the deployed API (see main.py).
+# It is chosen from the validation-set threshold analysis below, never from the test set.
+DECISION_THRESHOLD = 0.85
+
+print("Splitting data (70% Train, 10% Validation, 20% Test)...")
+# Step 1: hold out the 20% test set. Same seed and size as before, so the test set
+# is the same set of emails as in earlier runs of this script.
+X_train_full, X_test, y_train_full, y_test = train_test_split(
+    X, y,
+    test_size=0.2,
+    random_state=42,
     stratify=y
 )
+
+# Step 2: carve the validation set out of the remaining 80% (0.125 * 0.8 = 10% of all data).
+# The validation set drives early stopping and threshold selection.
+# The test set is only used for the final reported metrics.
+X_train, X_val, y_train, y_val = train_test_split(
+    X_train_full, y_train_full,
+    test_size=0.125,
+    random_state=42,
+    stratify=y_train_full
+)
+print(f"Train: {len(X_train)} | Validation: {len(X_val)} | Test: {len(X_test)}")
 
 # Define the exact feature subsets
 feature_sets = {
@@ -156,8 +173,9 @@ for set_name, features in feature_sets.items():
     current_text_features = [f for f in ['subject', 'body', 'attachment_types'] if f in features]
     current_cat_features = [f for f in ['has_attachments'] if f in features]
     
-    # Filter the training and testing data
+    # Filter the training, validation and testing data
     X_train_sub = X_train[features]
+    X_val_sub = X_val[features]
     X_test_sub = X_test[features]
     
     # Initialize a fresh model for a fair test
@@ -172,14 +190,14 @@ for set_name, features in feature_sets.items():
         random_seed=42
     )
     
-    # Train the model
+    # Train the model (early stopping watches the validation set)
     model_ablation.fit(
         X_train_sub, y_train,
-        eval_set=(X_test_sub, y_test),
+        eval_set=(X_val_sub, y_val),
         early_stopping_rounds=50
     )
-    
-    # Predict using the baseline 0.50 threshold to compare raw algorithmic power
+
+    # Predict on the untouched test set using the baseline 0.50 threshold to compare raw algorithmic power
     preds = model_ablation.predict(X_test_sub)
     
     # Calculate metrics
@@ -208,24 +226,27 @@ model = CatBoostClassifier(
 print("Starting training...")
 model.fit(
     X_train, y_train,
-    eval_set=(X_test, y_test),
+    eval_set=(X_val, y_val),
     early_stopping_rounds=50,
     verbose=100
 )
 
-# Get the raw probabilities for the test set
-probabilities = model.predict_proba(X_test)[:, 1]
+# Threshold selection uses validation-set probabilities only
+val_probabilities = model.predict_proba(X_val)[:, 1]
 
-print("\n--- Threshold Analysis Matrix ---")
+print("\n--- Threshold Analysis Matrix (Validation Set) ---")
 for threshold in [0.50, 0.60, 0.70, 0.80, 0.85, 0.90, 0.95]:
-    custom_preds = (probabilities >= threshold).astype(int)
-    precision = precision_score(y_test, custom_preds)
-    recall = recall_score(y_test, custom_preds)
-    f1 = f1_score(y_test, custom_preds)
+    custom_preds = (val_probabilities >= threshold).astype(int)
+    precision = precision_score(y_val, custom_preds)
+    recall = recall_score(y_val, custom_preds)
+    f1 = f1_score(y_val, custom_preds)
     print(f"Threshold: {threshold:.2f} | Precision: {precision:.4f} | Recall: {recall:.4f} | F1: {f1:.4f}")
 
-print("\n--- Optimized Confusion Matrix (Threshold 0.85) ---")
-final_preds = (probabilities >= 0.85).astype(int)
+# Final metrics: the test set is scored once, at the threshold chosen above
+probabilities = model.predict_proba(X_test)[:, 1]
+
+print(f"\n--- Test Set Confusion Matrix (Threshold {DECISION_THRESHOLD:.2f}) ---")
+final_preds = (probabilities >= DECISION_THRESHOLD).astype(int)
 cm = confusion_matrix(y_test, final_preds)
 print(f"True Negatives (TN): {cm[0][0]}")
 print(f"False Positives (FP): {cm[0][1]}")
@@ -233,11 +254,11 @@ print(f"False Negatives (FN): {cm[1][0]}")
 print(f"True Positives (TP): {cm[1][1]}")
 
 # Evaluate and Save
-print("\n--- Final Model Evaluation (Threshold 0.50) ---")
+print("\n--- Final Model Evaluation on Test Set (Threshold 0.50) ---")
 predictions = model.predict(X_test)
 print(classification_report(y_test, predictions, target_names=['Benign (0)', 'Phishing (1)'], digits=4))
 
-print("\n--- Final Model Evaluation (Threshold 0.85) ---")
+print(f"\n--- Final Model Evaluation on Test Set (Threshold {DECISION_THRESHOLD:.2f}) ---")
 print(classification_report(y_test, final_preds, target_names=['Benign (0)', 'Phishing (1)'], digits=4))
 
 print("\nSaving model...")

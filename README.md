@@ -31,7 +31,9 @@ Scanning is on demand: nothing is sent until you click the button. A scan sends 
 
 ## Results
 
-The model was trained on the [MeAJOR corpus](https://doi.org/10.5281/zenodo.18471483) with an 80/20 stratified split, and evaluated on the 21,737 held-out emails.
+The model was trained on the [MeAJOR corpus](https://doi.org/10.5281/zenodo.18471483). The figures below come from the original evaluation: an 80/20 stratified split, scored on the 21,737 held-out emails.
+
+> **Note.** `train.py` now uses a 70/10/20 train/validation/test split, with early stopping and threshold selection on the validation set and the same 21,737-email test set scored once at the end. The committed model (`phishguard.cbm`) and the figures below come from the earlier 80/20 run, in which the held-out set also served for early stopping and threshold selection. Rerunning `train.py` will produce a new model with slightly different numbers.
 
 ### Decision threshold
 
@@ -106,7 +108,7 @@ Then open `chrome://extensions`, enable Developer mode, click **Load unpacked** 
 
 ### Retraining
 
-`train.py` reruns the ablation study, trains the final model and prints the threshold analysis. Its dependencies (scikit-learn and pyarrow) are included in `requirements.txt`. It also needs a CUDA-capable GPU, because the script sets `task_type="GPU"`.
+`train.py` splits the data 70/10/20 into train, validation and test sets, reruns the ablation study, trains the final model with early stopping on the validation set, prints the validation-set threshold analysis and reports final metrics on the test set. Its dependencies (scikit-learn and pyarrow) are included in `requirements.txt`. It also needs a CUDA-capable GPU, because the script sets `task_type="GPU"`.
 
 ## Tech stack
 
