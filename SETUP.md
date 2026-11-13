@@ -28,7 +28,7 @@ phishguard/
 Before setting up the project, ensure you have the following installed:
 
 ### Backend Requirements
-- **Python** 3.9+
+- **Python** 3.11+
 - **pip** (Python package manager)
 
 ### Frontend Requirements
@@ -75,6 +75,8 @@ This will install:
 - **pydantic** 2.13.3 - Data validation
 - **pandas** 3.0.2 - Data processing
 - **catboost** 1.2.10 - Machine learning model
+- **scikit-learn** 1.9.1 - Train/test split and evaluation metrics (used by `train.py`)
+- **pyarrow** 26.0.1 - Reads the Parquet training data (used by `train.py`)
 
 ### Step 3: Configure Environment (Optional)
 

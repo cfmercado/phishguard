@@ -106,7 +106,7 @@ Then open `chrome://extensions`, enable Developer mode, click **Load unpacked** 
 
 ### Retraining
 
-`train.py` reruns the ablation study, trains the final model and prints the threshold analysis. Beyond `requirements.txt`, it needs scikit-learn, a Parquet engine such as pyarrow if one is not already installed, and a CUDA-capable GPU (the script sets `task_type="GPU"`).
+`train.py` reruns the ablation study, trains the final model and prints the threshold analysis. Its dependencies (scikit-learn and pyarrow) are included in `requirements.txt`. It also needs a CUDA-capable GPU, because the script sets `task_type="GPU"`.
 
 ## Tech stack
 

@@ -3,3 +3,5 @@ uvicorn==0.45.0
 pydantic==2.13.3
 pandas==3.0.2
 catboost==1.2.10
+scikit-learn==1.9.1
+pyarrow==26.0.1
