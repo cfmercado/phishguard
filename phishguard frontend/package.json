@@ -12,7 +12,7 @@
     "dev": "npm run bundle -- --watch"
   },
   "author": "Cedric Allen F. Mercado",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "gmail-js": "^1.1.14",
     "jquery": "^4.0.0-beta"

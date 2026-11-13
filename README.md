@@ -123,3 +123,7 @@ Mendes, P., Maia, E., & Praça, I. (2025). *MeAJOR Corpus: a Multi-Source Datase
 ## Author
 
 Cedric Allen F. Mercado · [github.com/cfmercado](https://github.com/cfmercado)
+
+## License
+
+The code in this repository is released under the [MIT License](LICENSE). The MeAJOR dataset is the work of its authors and is covered by its own terms, not by this licence; see the dataset links above.
